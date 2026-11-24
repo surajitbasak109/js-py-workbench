@@ -1,52 +1,35 @@
-# AGENTS.md — Universal Project Plan & Engineering Rules
+# AGENTS.md
 
-## 1. Objective & Stack
+## Repository Overview
 
-- **Goal:** Build a decoupled, zero-cost JavaScript + Python monorepo with reusable helper libraries and strict JSON boundaries.
-- **Frontend (`apps/web`):** JavaScript (ES Modules, Vite).
-- **Backend (`apps/py_service`):** Python 3.11+, FastAPI, Pydantic v2, Uvicorn.
-- **Shared JS Helpers (`packages/js_helpers`):** Pure, framework-agnostic JavaScript utilities.
+`js-py-workbench` is a monorepo combining a Vite JavaScript frontend (`apps/web`), a FastAPI Python backend (`apps/py_service`), and shared JavaScript helpers (`packages/js_helpers`), orchestrated via `pnpm` workspaces.
 
-## 2. Repository Layout
+## Directory Layout
 
-- `apps/web/` — Browser UI and client-side orchestration only.
-- `apps/py_service/` — FastAPI app (`main.py`), pure Python helpers (`helpers.py`), isolated `.venv/`.
-- `packages/js_helpers/` — Shared JS helpers (`helpers.js`: `retryAsync`, `safeJsonParse`, `debounce`, `callPythonApi`).
-- `package.json` — Root task runner (`concurrently`).
+- `apps/web/`: Vite frontend (`vite.config.js` proxies `/api` and `/health` to `http://127.0.0.1:8000`).
+- `apps/py_service/`: FastAPI service (`main.py`, `test_api.py`, `requirements.txt`) using an isolated virtual environment at `apps/py_service/.venv`.
+- `packages/js_helpers/`: Shared ESM JavaScript helpers (`@repo/js-helpers`) with unit tests (`node --test`).
+- `.github/workflows/ci.yml`: Automated CI pipeline running lint, tests, and production build.
+- `PLAN.md` & `PROGRESS.md`: Architecture roadmap and task tracking.
 
-## 3. Canonical Commands (Run from Repo Root Unless Noted)
+## Key Commands (Run from Repo Root)
 
-- **Install JS deps:** `npm install`
-- **Install Python deps:** `cd apps/py_service && .venv/bin/pip install -r requirements.txt`
-- **Start full dev stack:** `npm run dev` (Python on `127.0.0.1:8000`, Web on `localhost:5173`)
-- **Run Python tests:** `cd apps/py_service && .venv/bin/pytest -v`
-- **Run JS tests:** `node --test`
-- **Lint & Format:**
-  - Python: `cd apps/py_service && .venv/bin/ruff check . && .venv/bin/ruff format --check .`
-  - JavaScript: `npx eslint .`
+- **Install Python deps:** `pnpm run install:py`
+- **Start full dev stack:** `pnpm dev` (`http://127.0.0.1:5173` and `http://127.0.0.1:8000`)
+- **Lint all (JS + Python):** `pnpm lint` (`pnpm run lint:js`, `pnpm run lint:py`)
+- **Format Python:** `pnpm run format:py`
+- **Run all tests (JS + Python):** `pnpm test` (`pnpm run test:js`, `pnpm run test:py`)
+- **Build frontend:** `pnpm run build`
 
-## 4. Phased Execution Plan
+## Engineering Guidelines for Agents
 
-1. **Phase 1 (Foundation):** Verify `.gitignore`, `.env.example`, `.venv`, and simultaneous startup via `npm run dev`.
-2. **Phase 2 (Helpers & Contract):** Keep business/data transformations in pure functions (`helpers.py`, `helpers.js`); validate all HTTP payloads with Pydantic models in `main.py`.
-3. **Phase 3 (Frontend Slice):** Connect `apps/web` UI actions to FastAPI endpoints using `callPythonApi` with explicit loading, empty, and error states.
-4. **Phase 4 (Verification):** Add unit tests for edge cases (empty inputs, malformed JSON, network failures) before adding new features.
-5. **Phase 5 (Docs & Free Deploy):** Document setup and trade-offs in `README.md`; target $0/free-tier hosting only.
+- Keep root `package.json` as an ES module (`"type": "module"`) and follow ESLint v9 flat config rules in `eslint.config.js`.
+- Always run Python commands (`pytest`, `ruff`, `uvicorn`) through `apps/py_service/.venv/bin/` via the `pnpm` scripts.
+- Validate FastAPI request/response shapes with Pydantic models and keep `TestClient` tests in `apps/py_service/test_api.py` updated when endpoints change.
+- Never commit `.venv/`, `node_modules/`, `dist/`, `__pycache__/`, `.pytest_cache/`, or `.ruff_cache/`.
+- Update `PROGRESS.md` when completing tasks or adding new pending work.
 
-## 5. Strict Boundaries (For All AI Assistants)
+## Current Status Snapshot
 
-- **ALWAYS:**
-  - Keep functions small, pure, and typed/documented (Python type hints + JSDoc).
-  - Run or provide exact verification commands (`curl`, `pytest`, `node --test`) after every change.
-  - Preserve the `$0` local-first / free-tier budget constraint.
-- **ASK FIRST:**
-  - Before introducing new frameworks, ORMs, Docker services, or paid cloud dependencies.
-  - Before changing API routes or Pydantic response schemas.
-- **NEVER:**
-  - Commit `.env`, `node_modules/`, or `apps/py_service/.venv/`.
-  - Put Python data-processing logic inside `apps/web/` or duplicate helpers across packages.
-  - Hardcode secrets or local absolute user paths (`/home/...`) inside source files.
-
-## 5. Package Manager
-
-Always use pnpm (pnpm install, pnpm dev, pnpm --filter ..., pnpm exec ...). Never emit npm or npx commands.
+- **Done:** Monorepo structure, `pnpm` scripts, Vite `/api` and `/health` proxy, Ruff setup, ESLint v9 flat config + ESM root setup, `TestClient` endpoint tests, `.github/workflows/ci.yml`, and extended `/api/batch-summary` models/metrics (`non_empty_items`, `char_stats`, `batch_previews`) in `apps/py_service/main.py`.
+- **Pending:** Fixing the `retryAsync` import in `apps/web/src/main.js`, clearing any lingering listeners on ports `8000`/`5173`, rendering the new batch metrics/previews in `apps/web`, adding custom UI inputs, completing the full Git commit and push to `origin/main`, and writing `README.md`.
