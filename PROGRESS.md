@@ -16,5 +16,5 @@
 - [ ] **Clean Port/Process State & Verify Full Dev Loop:** JS/Python lint and formatting plus frontend build pass. Python pytest stalls on its first `TestClient` request, and sandbox policy denies listening on ports `8000` and `5173`; port state cannot be inspected here.
 - [x] **Render Richer Batch Summary Metrics in Frontend:** The UI now displays item counts, batch size/count, character statistics, and batch previews.
 - [x] **Add Custom User Input Controls in UI:** Existing editable items and batch-size inputs are wired to the summary request.
-- [ ] **Complete Git Commit & GitHub Push:** Stage intended workspace files, commit, and push `main` to `origin`.
+- [x] **Complete Git Commit & GitHub Push:** Committed as `346a33e` and pushed `main` to `origin`.
 - [x] **Add Project Documentation:** Added setup instructions, workspace commands, architecture notes, and CI workflow details to `README.md`.
