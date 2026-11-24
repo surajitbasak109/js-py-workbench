@@ -1,0 +1,26 @@
+{
+  "name": "js-py-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Monorepo combining a JavaScript web app with a Python FastAPI service using pnpm",
+  "scripts": {
+    "dev": "node -e 'import(\"node:child_process\").then(({ spawn }) => { const procs = [\"dev:py\", \"dev:web\"].map((s) => spawn(\"pnpm\", [\"run\", s], { stdio: \"inherit\" })); const stop = () => { for (const p of procs) p.kill(\"SIGINT\"); process.exit(0); }; process.on(\"SIGINT\", stop); process.on(\"SIGTERM\", stop); });'",
+    "dev:py": "cd apps/py_service && .venv/bin/uvicorn main:app --reload --host 127.0.0.1 --port 8000",
+    "dev:web": "pnpm --filter @repo/web run dev",
+    "build": "pnpm --filter @repo/web run build",
+    "install:py": "cd apps/py_service && .venv/bin/pip install -r requirements.txt",
+    "test": "pnpm run test:js && pnpm run test:py",
+    "test:js": "node --test packages/js_helpers/*.test.js",
+    "test:py": "cd apps/py_service && .venv/bin/pytest -v",
+    "lint": "pnpm run lint:js && pnpm run lint:py",
+    "lint:js": "pnpm --filter @repo/web run lint && pnpm exec eslint packages/js_helpers",
+    "lint:py": "cd apps/py_service && .venv/bin/ruff check . && .venv/bin/ruff format --check .",
+    "format:py": "cd apps/py_service && .venv/bin/ruff check --fix . && .venv/bin/ruff format ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^9.0.0",
+    "globals": "^17.14.0"
+  }
+}
